@@ -2,14 +2,14 @@
 #!/usr/bin/env python
 
 ############################################################################################################
-##	Version: 1.1
-##  Date: Feb 12/2020
+##	Version: 1.2
+##  Date: Feb 24/2020
 ##  This application utilizes an RC-522 RFID pad and a mariaDB database to do basic registration for 
 ##  cubcar races.  The program checks to see if the Youth and or RFID is already in use in the database 
 ##  before creating a shell of a record.   
 ##  
 ############################################################################################################
-## Notes:  Will want to add a simple text menu to give choices - Register, Read Card, Update RFID
+## 
 ## 
 ##
 ###########################################################################################################
@@ -28,7 +28,7 @@ reader = SimpleMFRC522()
 
 ## Connection String for Database
 db = mysql.connector.connect(
-    host="192.168.0.137",
+    host="192.168.100.148",
     ## host="localhost",
     user="cubcaradmin",
     passwd="cubsrock",
@@ -345,12 +345,47 @@ def NewHeat():
     
 ## End NewHeat
 
-
+############################################################################################################
+## Lookup Race Statistics - RaceCounter, FastestTime, Fastest Lane etc.
+## if display = true then print results, otherwise just return results
+## Can pass Unit #, or will just lookup maxRacecounter if none specified 
+############################################################################################################
+## Unit = 1
+## UnitDetails = { 'Unit' : Unit }
+## RaceStats =  lookupRaceStats( 'True', **UnitDetails )
+## details = RaceStats[0]
+## RaceCounter = details['RaceCounter']
+## Heat = details['Heat']
+def lookupRaceStats(display = 'True', **kwargs):
+## if display = true then print results, otherwise just return results 
+    if 'Unit' in kwargs :
+        # sql = "SELECT MAX(RaceCounter), MAX(Heat), MIN(RaceTime) from RaceResults WHERE Unit= '"+ str(kwargs['Unit']) + "';"
+        sql = "SELECT MAX(A.RaceCounter) AS RaceCounter, RIGHT( MIN(A.RaceTime), 9) AS RaceTime, B.Heat FROM raceresults A INNER JOIN	trackheat B	ON A.Unit = B.TrackID WHERE A.Unit = '"+ str(kwargs['Unit']) + "' AND A.RaceTime > 00 ;"
+    
+    else :
+        sql = "SELECT MAX(RaceCounter) As RaceCounter from RaceResults ;"
+    ## end if kwargs
+    
+    cursor = db.cursor(buffered=True)
+        
+    ## Return race statistics in a list of dictionaries. (Should only be 1 row)
+    cursor.execute(sql)
+    result = []
+    columns = tuple( [d[0] for d in cursor.description] )
+    for row in cursor:
+        result.append(dict(zip(columns, row)))
+    
+    cursor.close()
+    
+    if display == 'True':
+        pprint( result )
+    ## end if
+    return result
+## end lookupRaceStats
     
 #########################################################################################################################################
 ## Begin Main part of the program
 #########################################################################################################################################
-
 
 while 1:
     ## racerinfo = createRacer()
@@ -370,6 +405,7 @@ while 1:
         input("Press Enter")
     elif xx == "6":
         ## UpdateRacerInfo()
+        print("You are wildly optimistic if you think this function was written yet")
         input("Press Enter")
     elif xx == "5":
         NewHeat()
