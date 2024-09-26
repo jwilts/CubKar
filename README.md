@@ -59,8 +59,4 @@ The **Cub Car Timer** is a project designed to manage CubCar (Pinewood Derby) ra
 - Investigate LED multiplexing for more advanced race visuals.
 - Implement better threading and callback functionality to make the GUI more responsive.
 
-## Installation Instructions
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yourusername/cubcar-timer.git
-   cd cubcar-timer
+
